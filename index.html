@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Board — Track. Execute. Complete.</title>
+<meta name="description" content="Track your missions. Stay disciplined. Ship results.">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="./assets/images/favicon-32.png">
+<link rel="apple-touch-icon" href="./assets/images/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0A0A0A;
+  --paper:#F4EFE6;
+  --paper2:#EDE8DF;
+  --yellow:#FFE500;
+  --blue:#0047FF;
+  --red:#D91A0A;
+  --green:#00963A;
+  --mid:#C4BFB6;
+  --light:#D6D1C8;
+  --shadow:4px 4px 0 var(--ink);
+  --shadow-lg:7px 7px 0 var(--ink);
+  --ticker-h:46px;
+  --nav-h:62px;
+}
+body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:inherit}
+input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--paper2)}
+::-webkit-scrollbar-thumb{background:var(--ink)}
+
+/* ── QUOTE TICKER ── */
+#quoteTicker{
+  background:#111;
+  height:var(--ticker-h);
+  display:flex;align-items:stretch;
+  border-bottom:3px solid var(--yellow);
+  position:sticky;top:0;z-index:101;
+  overflow:hidden;
+}
+.ticker-pill{
+  background:var(--yellow);
+  color:var(--ink);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.68rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;
+  padding:0 18px;
+  display:flex;align-items:center;
+  white-space:nowrap;
+  border-right:3px solid var(--ink);
+  flex-shrink:0;
+  gap:8px;
+}
+.ticker-dot{
+  width:7px;height:7px;background:var(--ink);
+  border-radius:50%;flex-shrink:0;
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.ticker-body{
+  flex:1;display:flex;align-items:center;
+  padding:0 2rem;overflow:hidden;position:relative;
+}
+.ticker-text{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.8rem;
+  letter-spacing:.03em;
+  color:rgba(244,239,230,.9);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+  animation:slideUp .5s ease;
+}
+.ticker-num{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.62rem;color:rgba(244,239,230,.3);
+  margin-left:auto;padding-left:2rem;white-space:nowrap;flex-shrink:0;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ticker-arrows{display:flex;gap:0;flex-shrink:0;border-left:2px solid rgba(255,255,255,.1)}
+.ticker-arr{
+  background:transparent;border:none;
+  color:rgba(244,239,230,.35);
+  font-size:.9rem;padding:0 12px;
+  transition:color .15s,background .15s;
+  height:100%;
+}
+.ticker-arr:hover{background:rgba(255,229,0,.12);color:var(--yellow)}
+
+/* ── NAV ── */
+nav{
+  background:var(--ink);
+  height:var(--nav-h);
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 2rem;
+  position:sticky;
+  top:var(--ticker-h);
+  z-index:100;
+  border-bottom:2px solid rgba(255,255,255,.06);
+}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.nav-logo img {
+    height: 48px;
+    width: auto;
+    display: block;
+}
+.nav-right{display:flex;align-items:center;gap:10px}
+
+/* SEARCH */
+.search-container{position:relative}
+.search-input-wrap{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.14);
+  height:38px;padding:0 14px;gap:10px;
+  transition:background .15s,border-color .2s;
+  min-width:220px;
+}
+.search-input-wrap:focus-within{
+  background:rgba(255,229,0,.07);
+  border-color:rgba(255,229,0,.5);
+}
+.search-input-wrap svg{flex-shrink:0;opacity:.4;transition:opacity .15s}
+.search-input-wrap:focus-within svg{opacity:.8;color:var(--yellow)}
+.search-input-wrap input{
+  background:none;border:none;outline:none;
+  color:var(--paper);font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem;width:100%;
+}
+.search-input-wrap input::placeholder{color:rgba(244,239,230,.3)}
+
+/* NAV BUTTONS */
+.nav-btn{
+  background:transparent;
+  border:1.5px solid rgba(255,255,255,.2);
+  color:rgba(244,239,230,.8);
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  padding:8px 16px;letter-spacing:.07em;text-transform:uppercase;
+  transition:all .15s;white-space:nowrap;
+}
+.nav-btn:hover{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+.nav-btn-primary{
+  background:var(--yellow);color:var(--ink);
+  border:1.5px solid var(--yellow);
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  font-weight:700;padding:8px 16px;
+  letter-spacing:.07em;text-transform:uppercase;
+  transition:all .15s;white-space:nowrap;
+  box-shadow:3px 3px 0 rgba(255,229,0,.3);
+}
+.nav-btn-primary:hover{background:#fff;border-color:#fff;box-shadow:3px 3px 0 rgba(255,255,255,.2)}
+
+/* CLOCK */
+.arcade-clock{
+  display:flex;flex-direction:column;align-items:flex-end;
+  font-family:'Share Tech Mono',monospace;
+}
+.clock-time{
+  font-size:1.2rem;letter-spacing:.08em;
+  color:var(--yellow);line-height:1;
+}
+.clock-date{
+  font-size:.6rem;letter-spacing:.1em;
+  color:rgba(244,239,230,.4);margin-top:2px;
+  text-transform:uppercase;
+}
+
+/* ── PAGES ── */
+.page{display:none;padding:2rem;max-width:1340px;margin:0 auto}
+.page.active{display:block}
+
+/* ── DASH HERO ── */
+.dash-hero{
+  border:2px solid var(--ink);border-bottom:none;
+  padding:2.5rem 2.5rem 2rem;
+  background:var(--yellow);
+  box-shadow:var(--shadow-lg);
+  position:relative;overflow:hidden;
+}
+.dash-hero::after{
+  content:'MISSION BOARD';
+  position:absolute;right:-10px;bottom:-18px;
+  font-size:5.5rem;font-weight:800;letter-spacing:-.04em;
+  opacity:.07;pointer-events:none;user-select:none;
+  text-transform:uppercase;
+}
+.dash-hero-inner{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem}
+.dash-h1{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:800;
+  letter-spacing:-.03em;line-height:.95;
+  text-transform:uppercase;
+}
+.dash-h1 span{display:block;font-size:clamp(.9rem,2vw,1.1rem);font-weight:500;letter-spacing:.02em;opacity:.6;margin-bottom:.35rem;text-transform:none}
+
+/* ── BUTTON PRIMARY ── */
+.btn-primary{
+  background:var(--ink);color:var(--yellow);
+  border:2px solid var(--ink);
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+  font-size:.88rem;padding:12px 22px;
+  text-transform:uppercase;letter-spacing:.06em;
+  box-shadow:var(--shadow);
+  transition:transform .08s,box-shadow .08s;
+  display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.btn-primary:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+.btn-primary:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+
+/* ── STATS STRIP ── */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border:2px solid var(--ink);border-top:none;
+  box-shadow:var(--shadow-lg);margin-bottom:2.5rem;
+}
+.stat-cell{padding:1.2rem 1.5rem;border-right:2px solid var(--ink)}
+.stat-cell:last-child{border-right:none}
+.stat-cell.inv{background:var(--ink)}
+.stat-cell.inv .stat-num{color:var(--yellow)}
+.stat-cell.inv .stat-label{color:rgba(244,239,230,.4)}
+.stat-num{font-family:'IBM Plex Mono',monospace;font-size:2.2rem;font-weight:600;line-height:1;display:block}
+.stat-label{font-size:.63rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#777;margin-top:4px}
+
+/* ── SECTION LABEL ── */
+.section-label{
+  font-family:'IBM Plex Mono',monospace;font-size:.63rem;
+  letter-spacing:.24em;text-transform:uppercase;color:#999;
+  margin-bottom:.75rem;margin-top:2rem;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label:first-child{margin-top:0}
+.section-label::after{content:'';flex:1;height:1px;background:var(--light)}
+.section-label .sl-count{
+  background:var(--ink);color:var(--yellow);
+  font-size:.6rem;padding:2px 7px;letter-spacing:.1em;
+}
+
+/* ── MISSIONS GRID ── */
+.missions-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+  border:2px solid var(--ink);box-shadow:var(--shadow-lg);
+  margin-bottom:1rem;
+}
+
+/* ── MISSION CARD ── */
+.mission-card{
+  border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);
+  padding:1.5rem;position:relative;
+  background:var(--paper);
+  display:flex;flex-direction:column;min-height:280px;
+  transition:background .15s;
+}
+.mission-card:nth-child(even){background:var(--paper2)}
+.mission-card:hover{background:#E9E4DB}
+.mission-card.card-done{opacity:.85}
+.mission-card.card-done:hover{background:var(--paper2)}
+
+/* top accent */
+.mission-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ink)}
+.mission-card.card-done::before{background:var(--green)}
+
+/* status indicator */
+.card-status-bar{
+  position:absolute;top:3px;left:0;right:0;
+  height:0;
+}
+
+.card-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#999;margin-bottom:.4rem}
+.card-title{font-size:1.15rem;font-weight:700;line-height:1.2;margin-bottom:.3rem}
+.card-desc{font-size:.8rem;color:#666;line-height:1.55;margin-bottom:.85rem;flex-grow:1}
+
+/* progress */
+.prog-wrap{border:2px solid var(--ink);height:10px;background:var(--paper);overflow:hidden;margin-bottom:.3rem}
+.prog-fill{height:100%;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-fill.pf-active{background:var(--ink)}
+.prog-fill.pf-done{background:var(--green)}
+.prog-meta{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:#777;margin-bottom:.75rem;display:flex;justify-content:space-between}
+
+/* tags */
+.tags-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.85rem}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.05em;padding:3px 8px;border:1.5px solid currentColor;text-transform:uppercase}
+.tag-active{color:var(--ink);background:transparent}
+.tag-done{color:var(--green);background:rgba(0,150,58,.08)}
+.tag-streak{color:var(--ink);background:var(--yellow)}
+.tag-day{color:#888;background:transparent;border-color:var(--light)}
+
+/* card actions */
+.card-actions{display:flex;border-top:2px solid var(--ink);margin:0 -1.5rem -1.5rem;margin-top:auto}
+.card-btn{
+  flex:1;background:transparent;border:none;border-right:2px solid var(--ink);
+  padding:10px 4px;font-family:'IBM Plex Mono',monospace;
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;transition:background .1s;
+}
+.card-btn:last-child{border-right:none}
+.card-btn:hover{background:var(--yellow)}
+.card-btn.cb-open:hover{background:var(--ink);color:var(--yellow)}
+.card-btn.cb-del:hover{background:var(--red);color:#fff}
+
+/* ── EMPTY ── */
+.empty-state{
+  border:2px dashed var(--light);padding:4rem 2rem;text-align:center;
+  background:rgba(255,255,255,.3);
+}
+.empty-glyph{
+  font-family:'IBM Plex Mono',monospace;font-size:2.5rem;font-weight:600;
+  letter-spacing:-.05em;color:var(--light);display:block;margin-bottom:.75rem;
+}
+.empty-state h2{font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+.empty-state p{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:#999;margin-bottom:1.5rem}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(10,10,10,.82);
+  z-index:200;display:none;
+  align-items:flex-start;justify-content:center;
+  padding:2rem 1rem;overflow-y:auto;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--paper);border:2px solid var(--ink);
+  box-shadow:9px 9px 0 var(--ink);
+  width:100%;max-width:570px;margin:auto;
+  animation:popIn .2s ease;
+}
+@keyframes popIn{from{transform:translate(6px,6px);opacity:0}to{transform:none;opacity:1}}
+.modal-head{
+  background:var(--ink);color:var(--paper);
+  padding:1.25rem 1.5rem;
+  display:flex;justify-content:space-between;align-items:center;
+  border-bottom:2px solid var(--yellow);
+}
+.modal-head h2{font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+.btn-close{background:none;border:none;color:rgba(244,239,230,.45);font-size:1.2rem;cursor:pointer;line-height:1;transition:color .15s}
+.btn-close:hover{color:var(--paper)}
+.modal-body{padding:1.5rem}
+.form-group{margin-bottom:1.2rem}
+.form-label{
+  display:block;font-family:'IBM Plex Mono',monospace;
+  font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;
+  margin-bottom:6px;color:#777;
+}
+.form-hint{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#aaa;margin-top:4px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=text],input[type=number],input[type=date],textarea{
+  width:100%;border:2px solid var(--ink);background:var(--paper);
+  padding:9px 12px;font-size:.88rem;color:var(--ink);outline:none;
+  transition:box-shadow .1s,background .1s;
+}
+input:focus,textarea:focus{
+  box-shadow:3px 3px 0 var(--ink);background:#fff;
+}
+textarea{resize:vertical;min-height:58px}
+
+/* tasks in modal */
+.tasks-section{border:2px solid var(--ink)}
+.tasks-head{
+  background:var(--ink);color:var(--yellow);
+  padding:7px 14px;font-family:'IBM Plex Mono',monospace;
+  font-size:.63rem;letter-spacing:.12em;text-transform:uppercase;
+}
+.task-item{border-bottom:2px solid var(--ink);padding:10px 12px;background:var(--paper)}
+.task-item:nth-child(even){background:var(--paper2)}
+.task-item:last-of-type{border-bottom:none}
+.task-item-row{display:flex;gap:8px;align-items:center}
+.task-item input[type=text]{
+  border:none;border-bottom:2px solid var(--mid);background:transparent;
+  padding:3px 0;font-weight:600;font-size:.85rem;box-shadow:none;flex:1;
+}
+.task-item input[type=text]:focus{border-bottom-color:var(--ink);box-shadow:none;background:transparent}
+.task-item textarea{
+  border:none;border-top:1.5px solid var(--light);background:transparent;
+  font-size:.77rem;padding:6px 0;min-height:42px;box-shadow:none;
+  resize:none;margin-top:6px;color:#666;width:100%;
+}
+.task-item textarea:focus{box-shadow:none;border-top-color:var(--ink);background:transparent}
+.btn-rm{
+  background:none;border:2px solid var(--light);color:#bbb;
+  font-size:.75rem;padding:4px 9px;flex-shrink:0;
+  transition:border-color .1s,color .1s;
+}
+.btn-rm:hover{border-color:var(--red);color:var(--red)}
+.btn-add-task{
+  width:100%;padding:10px;border:none;border-top:2px dashed var(--light);
+  background:transparent;font-family:'IBM Plex Mono',monospace;
+  font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:#aaa;transition:background .1s,color .1s;
+}
+.btn-add-task:hover{background:var(--yellow);color:var(--ink)}
+.modal-foot{border-top:2px solid var(--ink);display:flex}
+.modal-foot button{
+  flex:1;border:none;border-right:2px solid var(--ink);padding:13px;
+  font-family:'IBM Plex Mono',monospace;font-size:.77rem;
+  text-transform:uppercase;letter-spacing:.08em;transition:background .1s;
+}
+.modal-foot button:last-child{border-right:none}
+.foot-cancel{background:transparent;color:#888}
+.foot-cancel:hover{background:var(--light)}
+.foot-save{background:var(--ink);color:var(--yellow);font-weight:600}
+.foot-save:hover{background:#1c1c1c}
+
+/* ── DETAIL PAGE ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:.7rem;
+  text-transform:uppercase;letter-spacing:.1em;color:#999;
+  background:none;border:none;margin-bottom:1.5rem;padding:0;
+  transition:color .15s;
+}
+.back-btn:hover{color:var(--ink)}
+
+/* DETAIL BANNER */
+.detail-banner{
+  background:var(--ink);color:var(--paper);
+  border:2px solid var(--ink);box-shadow:var(--shadow-lg);
+  padding:2.25rem 2.5rem;
+  position:relative;overflow:hidden;
+}
+.detail-banner .detail-title{color:var(--yellow)}
+.detail-banner .detail-eyebrow{color:rgba(244,239,230,.4)}
+.detail-banner::after{
+  content:attr(data-title);
+  position:absolute;right:-15px;bottom:-20px;
+  font-size:4.5rem;font-weight:800;opacity:.05;
+  text-transform:uppercase;pointer-events:none;user-select:none;
+  letter-spacing:-.04em;white-space:nowrap;
+}
+.detail-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:#555;margin-bottom:.4rem}
+.detail-title{font-size:clamp(1.4rem,4vw,2.5rem);font-weight:800;text-transform:uppercase;line-height:1.05;margin-bottom:.6rem}
+.detail-desc{font-family:'IBM Plex Mono',monospace;font-size:.77rem;color:#777;line-height:1.65;max-width:560px;margin-bottom:1.5rem;border-left:3px solid var(--yellow);padding-left:.75rem}
+.detail-prog-wrap{border:1.5px solid rgba(255,255,255,.15);height:8px;overflow:hidden;margin-bottom:.35rem}
+.detail-prog-fill{height:100%;background:var(--yellow);transition:width .5s ease}
+.detail-prog-fill.dp-done{background:var(--green)}
+.detail-prog-label{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:#666;margin-bottom:1.5rem}
+.detail-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid rgba(255,255,255,.1);
+  padding-top:1.25rem;gap:.75rem;
+}
+.d-stat .dval{font-family:'IBM Plex Mono',monospace;font-size:1.4rem;font-weight:600;display:block;color:var(--yellow)}
+.d-stat .dlbl{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#555;margin-top:2px}
+
+/* ── TRACKER TABLE ── */
+.tracker-outer{
+  border:2px solid var(--ink);border-top:none;
+  box-shadow:var(--shadow-lg);overflow:hidden;margin-bottom:2rem;
+}
+.tracker-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;min-width:100%}
+thead th{
+  background:var(--ink);color:rgba(244,239,230,.7);
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;
+  font-weight:400;letter-spacing:.06em;
+  text-align:center;padding:8px 5px;
+  border-right:1px solid rgba(255,255,255,.08);
+  white-space:nowrap;
+  position:sticky;top:0;z-index:5;min-width:46px;
+}
+thead th.th-task{
+  text-align:left;padding-left:1rem;min-width:170px;
+  position:sticky;left:0;z-index:10;background:var(--ink);
+  border-right:2px solid rgba(255,255,255,.18);
+}
+thead th.th-today{background:var(--yellow)!important;color:var(--ink)!important;font-weight:700}
+thead th.th-missed{background:var(--red)!important;color:#fff!important}
+
+/* SUMMARY ROW (completed/total per day) */
+.summary-row td{
+  background:#F0EBE0;
+  border-top:2px solid var(--ink);
+  border-right:1px solid var(--light);
+  border-bottom:none;
+  text-align:center;
+  padding:5px 3px;
+}
+.summary-row td:first-child{
+  text-align:left;padding-left:1rem;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#999;
+  position:sticky;left:0;background:#F0EBE0;
+  border-right:2px solid var(--ink);z-index:2;
+}
+.day-summary{font-family:'IBM Plex Mono',monospace;font-size:.6rem;line-height:1.3;color:#888}
+.day-summary b{display:block;font-weight:700;color:var(--ink);font-size:.68rem}
+.day-summary.ds-all b{color:var(--green)}
+.day-summary.ds-miss b{color:var(--red)}
+.day-summary.ds-future b{color:var(--light)}
+
+/* TASK ROWS */
+tbody td{
+  border-right:1px solid var(--light);border-bottom:2px solid var(--light);
+  text-align:center;padding:9px 4px;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody td:first-child{
+  text-align:left;padding:9px 1rem;
+  font-size:.83rem;font-weight:600;
+  position:sticky;left:0;background:var(--paper);z-index:2;
+  min-width:170px;border-right:2px solid var(--ink);
+}
+tbody tr:nth-child(even) td:first-child{background:var(--paper2)}
+tbody tr:nth-child(even) td{background:rgba(0,0,0,.015)}
+td.td-today{background:rgba(255,229,0,.1)!important}
+td.td-missed{background:rgba(217,26,10,.06)!important}
+td.td-today:first-child,td.td-missed:first-child{background:inherit!important}
+
+/* CHECKBOX */
+.day-check{
+  width:22px;height:22px;appearance:none;-webkit-appearance:none;
+  border:2px solid var(--ink);background:#fff;
+  cursor:pointer;display:inline-block;position:relative;
+  transition:background .12s,transform .1s;vertical-align:middle;
+}
+.day-check:checked{background:var(--ink)}
+.day-check:checked::after{
+  content:'';position:absolute;
+  left:4px;top:1px;width:7px;height:12px;
+  border:2.5px solid var(--yellow);
+  border-left:none;border-top:none;
+  transform:rotate(45deg);
+}
+.day-check.check-crossed{
+  background:rgba(217,26,10,.08);
+  border-color:var(--red);
+}
+.day-check.check-crossed::after{
+  content:'';position:absolute;
+  left:3px;top:3px;right:3px;bottom:3px;
+  background:var(--red);
+  clip-path:polygon(15% 0%,50% 35%,85% 0%,100% 15%,65% 50%,100% 85%,85% 100%,50% 65%,15% 100%,0% 85%,35% 50%,0% 15%);
+}
+.day-check:disabled{opacity:.25;cursor:not-allowed;background:var(--light);border-color:var(--light)}
+.day-check:not(:disabled):not(:checked):not(.check-crossed):hover{transform:scale(1.15);border-color:var(--blue)}
+@keyframes checkPop{0%{transform:scale(1)}40%{transform:scale(1.4)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+.day-check.check-pop{animation:checkPop .4s cubic-bezier(.34,1.56,.64,1)}
+
+/* ── STREAK FIRE ── */
+.streak-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#FF6B00,#FFE500);
+  color:var(--ink);font-family:'IBM Plex Mono',monospace;
+  font-size:.65rem;font-weight:700;padding:3px 10px;
+  border:2px solid var(--ink);letter-spacing:.05em;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+/* ── TODAY GLOW ── */
+thead th.th-today{
+  background:var(--yellow)!important;color:var(--ink)!important;font-weight:700;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.2);
+}
+
+/* ── PROGRESS RING ON CARDS ── */
+.card-ring-wrap{
+  position:absolute;top:1.2rem;right:1.2rem;
+  width:48px;height:48px;
+}
+.ring-svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:var(--light);stroke-width:4}
+.ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
+.ring-fill-active{stroke:var(--ink)}
+.ring-fill-done{stroke:var(--green)}
+.ring-pct{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:.52rem;font-weight:700;color:var(--ink);
+}
+
+/* ── HEATMAP ROW ── */
+.heatmap-row{
+  display:flex;gap:3px;flex-wrap:wrap;padding:.75rem 1.5rem;
+  border-top:1.5px solid var(--light);margin:0 -1.5rem;margin-top:.6rem;
+}
+.heat-dot{
+  width:9px;height:9px;border-radius:2px;flex-shrink:0;
+  transition:transform .1s;cursor:default;
+}
+.heat-dot:hover{transform:scale(1.5)}
+.heat-0{background:var(--light)}
+.heat-half{background:#9dd4b3}
+.heat-full{background:var(--green)}
+.heat-missed{background:rgba(217,26,10,.35)}
+.heat-future{background:rgba(196,191,182,.25);border:1px dashed var(--light)}
+
+/* ── TASK MINI PROGRESS ── */
+.task-mini-prog{
+  display:flex;gap:2px;margin-top:4px;flex-wrap:wrap;
+}
+.tmp-dot{width:5px;height:5px;border-radius:50%;background:var(--light);flex-shrink:0}
+.tmp-dot.done{background:var(--green)}
+.tmp-dot.missed{background:rgba(217,26,10,.45)}
+
+/* ── BACK BTN ENHANCEMENT ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;border:2px solid var(--ink);
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:8px 18px;margin-bottom:1.5rem;
+  transition:background .1s,color .1s;
+}
+.back-btn:hover{background:var(--ink);color:var(--yellow)}
+
+/* ── FLOATING TODAY INDICATOR ── */
+.today-indicator{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--ink);color:var(--yellow);
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 16px;border:2px solid var(--yellow);
+  box-shadow:4px 4px 0 var(--yellow);
+  z-index:50;display:none;
+  animation:slideInUp .3s ease;
+}
+@keyframes slideInUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.today-indicator.show{display:block}
+
+/* ── CONFETTI CANVAS ── */
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:499}
+
+/* ── MISSION CARD HOVER LIFT ── */
+.mission-card{
+  transition:background .15s,transform .12s,box-shadow .12s;
+}
+.mission-card:hover{
+  transform:translate(-2px,-2px);
+  box-shadow:4px 4px 0 var(--ink);
+}
+
+/* TASK CELL */
+.task-name{font-weight:700;font-size:.83rem}
+.task-desc-cell{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:#aaa;margin-top:2px;line-height:1.3;white-space:normal;max-width:155px}
+
+/* ── CONGRATS MODAL ── */
+.congrats-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);
+  z-index:500;display:none;
+  align-items:center;justify-content:center;padding:1.5rem;
+}
+.congrats-overlay.open{display:flex}
+.congrats-box{
+  background:var(--yellow);border:3px solid var(--ink);
+  box-shadow:12px 12px 0 var(--ink);
+  padding:0;max-width:500px;width:100%;
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
+  position:relative;overflow:hidden;
+}
+.congrats-top{
+  background:var(--ink);padding:2rem 2.5rem 1.75rem;
+  text-align:center;
+}
+.congrats-top-label{
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;
+  letter-spacing:.3em;text-transform:uppercase;color:#555;margin-bottom:.6rem;
+}
+.congrats-heading{
+  font-size:3rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:-.03em;line-height:.95;color:var(--yellow);
+}
+.congrats-body{padding:2rem 2.5rem}
+.congrats-mission-name{
+  font-family:'IBM Plex Mono',monospace;font-size:.75rem;
+  letter-spacing:.08em;background:var(--ink);color:var(--yellow);
+  padding:8px 16px;display:inline-block;margin-bottom:1rem;
+}
+.congrats-stat-row{
+  display:flex;gap:0;border:2px solid var(--ink);margin-bottom:1.25rem;
+}
+.congrats-stat{flex:1;text-align:center;padding:.75rem .5rem;border-right:2px solid var(--ink)}
+.congrats-stat:last-child{border-right:none}
+.congrats-stat b{display:block;font-family:'IBM Plex Mono',monospace;font-size:1.3rem;font-weight:600}
+.congrats-stat span{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;opacity:.6}
+.congrats-msg{font-size:.85rem;line-height:1.6;color:#333;margin-bottom:1.5rem}
+.congrats-quote{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-style:italic;
+  color:#555;border-left:3px solid var(--ink);padding-left:.75rem;
+  margin-bottom:1.5rem;line-height:1.55;
+}
+.congrats-close{
+  display:block;width:100%;
+  background:var(--ink);color:var(--yellow);
+  border:2px solid var(--ink);
+  font-family:'IBM Plex Mono',monospace;font-size:.78rem;
+  text-transform:uppercase;letter-spacing:.12em;
+  padding:13px 28px;box-shadow:var(--shadow);
+  transition:transform .08s,box-shadow .08s;
+}
+.congrats-close:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .page{padding:1rem}
+  .stats-strip{grid-template-columns:repeat(2,1fr)}
+  .stat-cell:nth-child(2){border-right:none}
+  .detail-stats{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .search-input-wrap{min-width:140px}
+  .arcade-clock{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- QUOTE TICKER -->
+<canvas id="confettiCanvas"></canvas>
+<div id="quoteTicker">
+  <div class="ticker-pill">
+    <div class="ticker-dot"></div>
+    <span>Daily Brief</span>
+  </div>
+  <div class="ticker-body">
+    <div class="ticker-text" id="tickerText"></div>
+    <div class="ticker-num" id="tickerNum"></div>
+  </div>
+  <div class="ticker-arrows">
+    <button class="ticker-arr" onclick="prevQuote()" title="Previous">&#8593;</button>
+    <button class="ticker-arr" onclick="nextQuote()" title="Next">&#8595;</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+   <img src="./assets/images/logo.png" alt="Mission Board">
+  </div>
+  <div class="nav-right">
+    <div class="search-container">
+      <div class="search-input-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" color="rgba(244,239,230,.6)">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search missions..." oninput="renderDashboard()">
+      </div>
+    </div>
+    <button class="nav-btn" onclick="openCreateModal()">+ New Mission</button>
+    <div class="arcade-clock">
+      <div class="clock-time" id="clockTime">00:00:00</div>
+      <div class="clock-date" id="clockDate"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active" id="dashboardPage">
+  <div class="dash-hero">
+    <div class="dash-hero-inner">
+      <div>
+        <div class="dash-h1"><span>Track. Execute. Complete.</span>Mission Board</div>
+      </div>
+      <button class="btn-primary" onclick="openCreateModal()">+ Create Mission</button>
+    </div>
+  </div>
+  <div class="stats-strip" id="globalStats"></div>
+  <div id="missionsContainer"></div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div class="page" id="detailPage">
+  <button class="back-btn" onclick="goBack()">&#8592; All Missions</button>
+  <div id="detailContent"></div>
+</div>
+
+<!-- CREATE / EDIT MODAL -->
+<div class="modal-overlay" id="missionModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Create Mission</h2>
+      <button class="btn-close" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Mission Name</label>
+        <input type="text" id="mName" placeholder="e.g. Become a Better Developer">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="mDesc" placeholder="What is this mission about? What's the goal?" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Duration (days)</label>
+          <input type="number" id="mDuration" min="1" max="365" value="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" id="mStartDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tasks</label>
+        <div class="tasks-section">
+          <div class="tasks-head">&#8595; Define tasks for this mission</div>
+          <div id="tasksList"></div>
+          <button class="btn-add-task" onclick="addTaskField()">+ Add Task</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="foot-cancel" onclick="closeModal()">Cancel</button>
+      <button class="foot-save" onclick="saveMission()">Save Mission &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- TODAY INDICATOR -->
+<div class="today-indicator" id="todayIndicator">&#9654; Today: <span id="todayIndicatorDate"></span></div>
+
+<!-- CONGRATS MODAL -->
+<div class="congrats-overlay" id="congratsOverlay">
+  <div class="congrats-box">
+    <div class="congrats-top">
+      <div class="congrats-top-label">Mission Accomplished</div>
+      <div class="congrats-heading">Well<br>Done.</div>
+    </div>
+    <div class="congrats-body">
+      <div class="congrats-mission-name" id="cMissionName"></div>
+      <div class="congrats-stat-row" id="cStats"></div>
+      <div class="congrats-msg" id="cMsg"></div>
+      <div class="congrats-quote" id="cQuote"></div>
+      <button class="congrats-close" onclick="closeCongratsModal()">Back to Mission Board &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATE HELPERS (must be first — used by loadData on startup) ──
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function addDays(s, n){
+  const d = new Date(s+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function daysBetween(a,b){ return Math.floor((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 864e5); }
+
+// ── DATA ──
+let missions = [];
+let editingId = null;
+let currentMissionId = null;
+let shownCongrats = {};
+
+function loadData(){
+  try{ missions = JSON.parse(localStorage.getItem('mb_v1') || '[]'); }catch(e){ missions=[]; }
+  try{ shownCongrats = JSON.parse(localStorage.getItem('mb_congrats') || '{}'); }catch(e){ shownCongrats={}; }
+
+  // Auto-repair: if a mission's startDate is in the past, shift it forward to today.
+  // This happens when a mission was created yesterday and opened today with no actual progress.
+  // We shift the entire days[] array forward to keep any existing checked data aligned.
+  const today = todayStr();
+  let repaired = false;
+  missions.forEach(m => {
+    if(m.startDate < today){
+      const daysToShift = daysBetween(m.startDate, today);
+      // Shift each task's days array: drop the past days, prepend false for new future slots
+      m.tasks.forEach(t => {
+        // Remove the past days (they're gone), keep remaining days, pad end with false
+        t.days = t.days.slice(daysToShift).concat(Array(daysToShift).fill(false));
+      });
+      m.startDate = today;
+      repaired = true;
+    }
+  });
+  if(repaired) saveData();
+}
+function saveData(){ localStorage.setItem('mb_v1', JSON.stringify(missions)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmt(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+function fmtShort(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+
+// ── CLOCK ──
+function tickClock(){
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('clockTime');
+  if(el) el.textContent = hh + ':' + mm + ':' + ss;
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dd = document.getElementById('clockDate');
+  if(dd) dd.textContent = days[now.getDay()] + ' ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+// ── QUOTES ──
+const QUOTES = [
+  { q:"Discipline is choosing between what you want now and what you want most.", a:"" },
+  { q:"The secret of getting ahead is getting started.", a:"Mark Twain" },
+  { q:"Small steps done consistently compound into massive results.", a:"" },
+  { q:"You don't rise to the level of your goals — you fall to the level of your systems.", a:"James Clear" },
+  { q:"Progress, not perfection. Keep moving forward.", a:"" },
+  { q:"Consistency beats intensity. Show up every single day.", a:"" },
+  { q:"The goal is not to be perfect. The goal is to not quit.", a:"" },
+  { q:"Hard work in silence. Let the results make the noise.", a:"" },
+  { q:"A year from now, you will wish you had started today.", a:"Karen Lamb" },
+  { q:"The pain of discipline weighs ounces. The pain of regret weighs tons.", a:"" },
+  { q:"One more rep. One more page. One more day. That is how it is done.", a:"" },
+  { q:"What you do every day matters more than what you do once in a while.", a:"Gretchen Rubin" }
+];
+let qIdx = 0;
+let qTimer = null;
+function showQuote(i){
+  const el = document.getElementById('tickerText');
+  const ni = document.getElementById('tickerNum');
+  if(!el) return;
+  qIdx = ((i % QUOTES.length) + QUOTES.length) % QUOTES.length;
+  el.style.animation = 'none'; void el.offsetHeight;
+  const q = QUOTES[qIdx];
+  el.textContent = q.q + (q.a ? '  — ' + q.a : '');
+  el.style.animation = 'slideUp .5s ease';
+  if(ni) ni.textContent = (qIdx+1) + '/' + QUOTES.length;
+}
+function nextQuote(){ clearTimeout(qTimer); showQuote(qIdx+1); autoTicker(); }
+function prevQuote(){ clearTimeout(qTimer); showQuote(qIdx-1); autoTicker(); }
+function autoTicker(){ qTimer = setTimeout(()=>{ nextQuote(); }, 8000); }
+showQuote(0); autoTicker();
+
+// ── CALC ──
+function calcProgress(m){
+  let t=0,d=0;
+  m.tasks.forEach(tk => tk.days.forEach(v => { t++; if(v) d++; }));
+  return t===0 ? 0 : Math.round((d/t)*100);
+}
+function calcStreak(m){
+  if(!m.tasks.length) return 0;
+  const today = todayStr();
+  let s=0;
+  for(let d=m.duration-1; d>=0; d--){
+    const dd = addDays(m.startDate,d);
+    if(dd > today) continue;
+    if(m.tasks.every(t=>t.days[d])) s++; else break;
+  }
+  return s;
+}
+function currentDay(m){
+  const d = daysBetween(m.startDate, todayStr())+1;
+  return Math.max(0, Math.min(d, m.duration));
+}
+function isMissionDone(m){ return calcProgress(m) === 100; }
+function dayCompletedCount(m, d){
+  return m.tasks.filter(t => t.days[d]).length;
+}
+
+// ── RENDER DASHBOARD ──
+function renderDashboard(){
+  const q = (document.getElementById('searchInput').value || '').toLowerCase();
+  const today = todayStr();
+  const active = missions.filter(m => !isMissionDone(m) && addDays(m.startDate, m.duration-1) >= today);
+  const completed = missions.filter(m => isMissionDone(m));
+  const expired = missions.filter(m => !isMissionDone(m) && addDays(m.startDate, m.duration-1) < today);
+  const total = missions.length;
+  const avgP = total ? Math.round(missions.reduce((s,m)=>s+calcProgress(m),0)/total) : 0;
+
+  document.getElementById('globalStats').innerHTML = `
+    <div class="stat-cell"><span class="stat-num">${total}</span><div class="stat-label">Total</div></div>
+    <div class="stat-cell"><span class="stat-num">${active.length}</span><div class="stat-label">Active</div></div>
+    <div class="stat-cell inv"><span class="stat-num">${completed.length}</span><div class="stat-label">Completed</div></div>
+    <div class="stat-cell"><span class="stat-num">${avgP}%</span><div class="stat-label">Avg Progress</div></div>`;
+
+  const fa = active.filter(m=>m.name.toLowerCase().includes(q));
+  const fc = completed.filter(m=>m.name.toLowerCase().includes(q));
+  const fe = expired.filter(m=>m.name.toLowerCase().includes(q));
+  let html = '';
+
+  if(!total && !q){
+    html = `<div class="empty-state">
+      <span class="empty-glyph">[ ]</span>
+      <h2>No missions yet</h2>
+      <p>Every great result started with day one.<br>Create your first mission.</p>
+      <button class="btn-primary" onclick="openCreateModal()">+ Create First Mission</button>
+    </div>`;
+  } else {
+    if(fa.length){
+      html += `<div class="section-label">Active Missions <span class="sl-count">${fa.length}</span></div>`;
+      html += `<div class="missions-grid">${fa.map(m=>missionCard(m,'active')).join('')}</div>`;
+    }
+    if(fc.length){
+      html += `<div class="section-label">Completed Missions <span class="sl-count">${fc.length}</span></div>`;
+      html += `<div class="missions-grid">${fc.map(m=>missionCard(m,'done')).join('')}</div>`;
+    }
+    if(fe.length){
+      html += `<div class="section-label">Expired Missions <span class="sl-count">${fe.length}</span></div>`;
+      html += `<div class="missions-grid">${fe.map(m=>missionCard(m,'expired')).join('')}</div>`;
+    }
+    if(!fa.length && !fc.length && !fe.length && q){
+      html = `<div class="empty-state"><span class="empty-glyph">[?]</span><h2>No results</h2><p>No missions matching "${esc(q)}".</p></div>`;
+    }
+  }
+  document.getElementById('missionsContainer').innerHTML = html;
+}
+
+function missionCard(m, type){
+  const pct = calcProgress(m);
+  const streak = calcStreak(m);
+  const cd = currentDay(m);
+  const end = addDays(m.startDate, m.duration-1);
+  const isDone = type==='done';
+  const isExpired = type==='expired';
+  const today = todayStr();
+
+  // Progress ring SVG
+  const r = 20, circ = 2*Math.PI*r;
+  const offset = circ - (pct/100)*circ;
+  const ringFill = isDone ? 'ring-fill-done' : 'ring-fill-active';
+
+  // Mini heatmap (last 14 days or all if shorter)
+  const heatLen = Math.min(m.duration, 28);
+  const heatStart = Math.max(0, m.duration - heatLen);
+  let heatDots = '';
+  for(let d=heatStart; d<m.duration; d++){
+    const dd = addDays(m.startDate, d);
+    const isFuture = dd > today;
+    const done = dayCompletedCount(m, d);
+    const total = m.tasks.length;
+    let cls = 'heat-future';
+    if(!isFuture && total > 0){
+      if(done === total) cls = 'heat-full';
+      else if(done > 0) cls = 'heat-half';
+      else cls = 'heat-missed';
+    } else if(isFuture){ cls='heat-future'; }
+    heatDots += `<div class="heat-dot ${cls}" title="Day ${d+1}: ${isFuture?'upcoming':done+'/'+total}"></div>`;
+  }
+
+  return `<div class="mission-card${isDone?' card-done':''}">
+    <div class="card-ring-wrap">
+      <svg class="ring-svg" width="48" height="48" viewBox="0 0 48 48">
+        <circle class="ring-track" cx="24" cy="24" r="${r}"/>
+        <circle class="${ringFill} ring-fill" cx="24" cy="24" r="${r}"
+          stroke-dasharray="${circ}" stroke-dashoffset="${offset}"/>
+      </svg>
+      <div class="ring-pct">${pct}%</div>
+    </div>
+    <div class="card-eyebrow">${fmt(m.startDate)} &rarr; ${fmt(end)}</div>
+    <div class="card-title">${esc(m.name)}</div>
+    <div class="card-desc">${esc(m.desc || 'No description.')}</div>
+    <div class="prog-wrap"><div class="prog-fill ${isDone?'pf-done':'pf-active'}" style="width:${pct}%"></div></div>
+    <div class="prog-meta"><span>${pct}% complete</span><span>${m.tasks.length} task${m.tasks.length!==1?'s':''}</span></div>
+    <div class="tags-row">
+      ${isDone ? '<span class="tag tag-done">&#10003; Completed</span>' : isExpired ? '<span class="tag tag-day">Expired</span>' : '<span class="tag tag-active">Active</span>'}
+      ${streak>0 ? `<span class="streak-badge">&#128293; ${streak}d streak</span>` : ''}
+      ${!isDone && !isExpired ? `<span class="tag tag-day">Day ${cd}/${m.duration}</span>` : ''}
+    </div>
+    <div class="heatmap-row">${heatDots}</div>
+    <div class="card-actions">
+      <button class="card-btn cb-open" onclick="openDetail('${m.id}')">Open &rarr;</button>
+      <button class="card-btn" onclick="openEditModal('${m.id}')">Edit</button>
+      <button class="card-btn cb-del" onclick="deleteMission('${m.id}')">Delete</button>
+    </div>
+  </div>`;
+}
+
+// ── DETAIL ──
+function openDetail(id){
+  currentMissionId = id;
+  const m = missions.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('dashboardPage').classList.remove('active');
+  document.getElementById('detailPage').classList.add('active');
+  renderDetail(m);
+  updateTodayIndicator();
+}
+function goBack(){
+  document.getElementById('detailPage').classList.remove('active');
+  document.getElementById('dashboardPage').classList.add('active');
+  renderDashboard();
+  updateTodayIndicator();
+}
+
+function renderDetail(m){
+  const pct = calcProgress(m);
+  const streak = calcStreak(m);
+  const cd = currentDay(m);
+  const today = todayStr();
+  const isDone = isMissionDone(m);
+
+  // HEAD
+  let head = `<thead><tr><th class="th-task">Task</th>`;
+  for(let d=0; d<m.duration; d++){
+    const dd = addDays(m.startDate, d);
+    const isToday = dd===today;
+    const isFuture = dd>today;
+    const allDone = m.tasks.every(t=>t.days[d]);
+    const isMissedDay = !isFuture && !isToday && !allDone && m.tasks.length>0;
+    let cls = '';
+    if(isToday) cls='th-today';
+    else if(isMissedDay) cls='th-missed';
+    head += `<th class="${cls}">${isToday?'&#9654;':''}D${d+1}</th>`;
+  }
+  head += `</tr></thead>`;
+
+  // BODY — task rows
+  let body = `<tbody>`;
+  m.tasks.forEach((t,ti)=>{
+    body += `<tr><td>
+      <div class="task-name">${esc(t.name)}</div>
+      ${t.desc?`<div class="task-desc-cell">${esc(t.desc)}</div>`:''}
+    </td>`;
+    for(let d=0; d<m.duration; d++){
+      const dd = addDays(m.startDate,d);
+      const isFuture = dd>today;
+      const isToday = dd===today;
+      const isPast = !isFuture && !isToday;
+      const checked = !!t.days[d];
+      // Cross only appears for PAST days that were NOT checked (day has ended without completion)
+      const isMissedCell = isPast && !checked;
+      let tdCls = isToday ? 'td-today' : isMissedCell ? 'td-missed' : '';
+      let cbCls = '';
+      if(isMissedCell) cbCls = 'check-crossed';
+      // TODAY: interactive checkbox (one-way: can only check, not uncheck)
+      // FUTURE: fully disabled
+      // PAST + checked: checked + disabled (locked in)
+      // PAST + missed: crossed + disabled (locked as missed)
+      const isDisabled = isFuture || isPast;
+      if(isToday){
+        // Today's checkbox: interactive, one-way (enforced in toggleCheck)
+        body += `<td class="${tdCls}">
+          <input class="day-check ${cbCls}" type="checkbox"
+            ${checked?'checked':''}
+            onchange="toggleCheck('${m.id}',${ti},${d},this)">
+        </td>`;
+      } else {
+        // Past or future: fully disabled, no onchange needed
+        body += `<td class="${tdCls}">
+          <input class="day-check ${cbCls}" type="checkbox"
+            ${checked?'checked':''}
+            disabled>
+        </td>`;
+      }
+    }
+    body += `</tr>`;
+  });
+  body += `</tbody>`;
+
+  // SUMMARY ROW — completed/total per day
+  let sumRow = `<tr class="summary-row"><td>Progress</td>`;
+  for(let d=0; d<m.duration; d++){
+    const dd = addDays(m.startDate,d);
+    const isFuture = dd>today;
+    const done = dayCompletedCount(m,d);
+    const total = m.tasks.length;
+    let cls='', label='';
+    if(isFuture){ cls='ds-future'; label=`<b>—</b>${total}`; }
+    else if(done===total){ cls='ds-all'; label=`<b>${done}</b>${total}`; }
+    else{ cls='ds-miss'; label=`<b>${done}</b>${total}`; }
+    sumRow += `<td><div class="day-summary ${cls}">${label}</div></td>`;
+  }
+  sumRow += `</tr>`;
+
+  // Inject summary after tbody
+  const fullTable = `${head}<tbody>${body.replace('<tbody>','').replace('</tbody>','')}</tbody><tfoot>${sumRow}</tfoot>`;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-banner" data-title="${esc(m.name)}">
+      <div class="detail-eyebrow">Mission Detail</div>
+      <div class="detail-title">${esc(m.name)}</div>
+      ${m.desc?`<div class="detail-desc">${esc(m.desc)}</div>`:''}
+      <div class="detail-prog-wrap"><div class="detail-prog-fill ${isDone?'dp-done':''}" id="detailProg" style="width:${pct}%"></div></div>
+      <div class="detail-prog-label" id="detailProgLabel">${pct}% complete &middot; Day ${cd} of ${m.duration}</div>
+      <div class="detail-stats">
+        <div class="d-stat"><span class="dval" id="dsPct">${pct}%</span><span class="dlbl">Progress</span></div>
+        <div class="d-stat"><span class="dval" id="dsStreak">${streak}d</span><span class="dlbl">Streak</span></div>
+        <div class="d-stat"><span class="dval" id="dsDay">${cd}/${m.duration}</span><span class="dlbl">Day</span></div>
+        <div class="d-stat"><span class="dval" id="dsRem">${m.duration-cd}</span><span class="dlbl">Remaining</span></div>
+      </div>
+    </div>
+    <div class="tracker-outer">
+      <div class="tracker-scroll"><table>${fullTable}</table></div>
+    </div>`;
+}
+
+function reRenderSummaryRow(m){
+  // Refresh the summary tfoot cells without full re-render
+  const today = todayStr();
+  const cells = document.querySelectorAll('.summary-row td');
+  if(!cells.length) return;
+  for(let d=0; d<m.duration; d++){
+    const cell = cells[d+1];
+    if(!cell) continue;
+    const dd = addDays(m.startDate,d);
+    const isFuture = dd>today;
+    const done = dayCompletedCount(m,d);
+    const total = m.tasks.length;
+    let cls='',label='';
+    if(isFuture){ cls='ds-future'; label=`<b>—</b>${total}`; }
+    else if(done===total){ cls='ds-all'; label=`<b>${done}</b>${total}`; }
+    else{ cls='ds-miss'; label=`<b>${done}</b>${total}`; }
+    cell.innerHTML = `<div class="day-summary ${cls}">${label}</div>`;
+  }
+}
+
+function toggleCheck(mid, ti, di, el){
+  const m = missions.find(x=>x.id===mid);
+  if(!m) return;
+
+  // Iron-clad guard: only allow checking TODAY's column
+  const today = todayStr();
+  const dd = addDays(m.startDate, di);
+  if(dd !== today){
+    // Revert any DOM change — restore the stored value
+    el.checked = !!m.tasks[ti]?.days[di];
+    return;
+  }
+
+  // One-way only: once checked, cannot be unchecked
+  if(!el.checked){
+    el.checked = true; // put it back
+    return;
+  }
+
+  // Mark the task as done for today
+  m.tasks[ti].days[di] = true;
+  el.classList.remove('check-crossed');
+  const td = el.closest('td');
+  if(td){ td.classList.remove('td-missed'); }
+
+  // Micro celebration
+  el.classList.add('check-pop');
+  setTimeout(()=>el.classList.remove('check-pop'),400);
+  saveData();
+
+  const pct = calcProgress(m);
+  const streak = calcStreak(m);
+  const cd = currentDay(m);
+
+  // Update header numbers
+  const pg=document.getElementById('detailProg'); if(pg) pg.style.width=pct+'%';
+  const pl=document.getElementById('detailProgLabel'); if(pl) pl.textContent=`${pct}% complete · Day ${cd} of ${m.duration}`;
+  const ups={dsPct:`${pct}%`,dsStreak:`${streak}d`,dsDay:`${cd}/${m.duration}`,dsRem:`${m.duration-cd}`};
+  Object.entries(ups).forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.textContent=v; });
+
+  reRenderSummaryRow(m);
+
+  if(pct===100 && !shownCongrats[mid]){
+    shownCongrats[mid]=true;
+    localStorage.setItem('mb_congrats', JSON.stringify(shownCongrats));
+    setTimeout(()=>showCongrats(m), 500);
+  }
+}
+
+// ── CONGRATS ──
+const CONGRATS_QUOTES = [
+  "The harder the battle, the sweeter the victory.",
+  "Success is the sum of small efforts repeated day in and day out.",
+  "It always seems impossible until it is done.",
+  "You did not come this far to only come this far.",
+  "Your future self is proud of you."
+];
+function showCongrats(m){
+  const totalChecks = m.tasks.length * m.duration;
+  const q = CONGRATS_QUOTES[Math.floor(Math.random()*CONGRATS_QUOTES.length)];
+  document.getElementById('cMissionName').textContent = m.name.toUpperCase();
+  document.getElementById('cStats').innerHTML = `
+    <div class="congrats-stat"><b>${m.duration}</b><span>Days</span></div>
+    <div class="congrats-stat"><b>${m.tasks.length}</b><span>Tasks</span></div>
+    <div class="congrats-stat"><b>${totalChecks}</b><span>Check-ins</span></div>`;
+  document.getElementById('cMsg').textContent =
+    `You committed to ${m.name} for ${m.duration} days and saw it through to completion. Every single task, every single day — checked. That kind of follow-through is rare. Be proud of this.`;
+  document.getElementById('cQuote').textContent = '"' + q + '"';
+  document.getElementById('congratsOverlay').classList.add('open');
+  launchConfetti();
+}
+function closeCongratsModal(){
+  document.getElementById('congratsOverlay').classList.remove('open');
+  goBack();
+}
+
+// ── MODAL ──
+function openCreateModal(){
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Create Mission';
+  document.getElementById('mName').value='';
+  document.getElementById('mDesc').value='';
+  document.getElementById('mDuration').value=30;
+  const sd = document.getElementById('mStartDate');
+  sd.value = todayStr(); sd.min = todayStr();  // always start from today
+  document.getElementById('tasksList').innerHTML='';
+  addTaskField(); addTaskField();
+  document.getElementById('missionModal').classList.add('open');
+  setTimeout(()=>document.getElementById('mName').focus(),100);
+}
+function openEditModal(id){
+  const m = missions.find(x=>x.id===id);
+  if(!m) return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Edit Mission';
+  document.getElementById('mName').value=m.name;
+  document.getElementById('mDesc').value=m.desc||'';
+  document.getElementById('mDuration').value=m.duration;
+  const sd=document.getElementById('mStartDate');
+  // Clamp displayed date to today if the stored startDate is in the past
+  const clampedStart = m.startDate < todayStr() ? todayStr() : m.startDate;
+  sd.value=clampedStart; sd.min=todayStr();
+  document.getElementById('tasksList').innerHTML='';
+  m.tasks.forEach(t=>addTaskField(t.name,t.desc||''));
+  document.getElementById('missionModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('missionModal').classList.remove('open'); }
+
+function addTaskField(name='',desc=''){
+  const item=document.createElement('div');
+  item.className='task-item';
+  item.innerHTML=`
+    <div class="task-item-row">
+      <input type="text" placeholder="Task name..." value="${esc(name)}">
+      <button class="btn-rm" onclick="this.closest('.task-item').remove()">&#10005;</button>
+    </div>
+    <textarea placeholder="Short description (optional)..." rows="1">${esc(desc)}</textarea>`;
+  document.getElementById('tasksList').appendChild(item);
+  if(!name) item.querySelector('input').focus();
+}
+
+function saveMission(){
+  const name=document.getElementById('mName').value.trim();
+  const desc=document.getElementById('mDesc').value.trim();
+  const duration=parseInt(document.getElementById('mDuration').value)||30;
+  // Always clamp startDate to today minimum — never allow a past date
+  const rawDate=document.getElementById('mStartDate').value||todayStr();
+  const startDate = rawDate < todayStr() ? todayStr() : rawDate;
+  const items=[...document.querySelectorAll('#tasksList .task-item')];
+  const tasks=items.map(item=>{
+    const n=item.querySelector('input[type=text]').value.trim();
+    const d=item.querySelector('textarea').value.trim();
+    return n?{name:n,desc:d,days:Array(duration).fill(false)}:null;
+  }).filter(Boolean);
+  if(!name){ alert('Enter a mission name.'); return; }
+  if(!tasks.length){ alert('Add at least one task.'); return; }
+  if(editingId){
+    const m=missions.find(x=>x.id===editingId);
+    const old={};m.tasks.forEach(t=>old[t.name]=t.days);
+    m.name=name;m.desc=desc;m.duration=duration;m.startDate=startDate;
+    m.tasks=tasks.map(t=>({...t,days:Array.from({length:duration},(_,i)=>(old[t.name]||[])[i]||false)}));
+  } else {
+    missions.unshift({id:uid(),name,desc,duration,startDate,tasks});
+  }
+  saveData(); closeModal(); renderDashboard();
+}
+
+function deleteMission(id){
+  if(!confirm('Delete this mission? This cannot be undone.')) return;
+  missions=missions.filter(x=>x.id!==id);
+  saveData(); renderDashboard();
+}
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Click outside to close modal
+document.getElementById('missionModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// Keyboard shortcuts
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeModal();
+  if(e.key==='n' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); openCreateModal(); }
+});
+
+// ── TODAY INDICATOR ──
+function updateTodayIndicator(){
+  const ind = document.getElementById('todayIndicator');
+  const dt = document.getElementById('todayIndicatorDate');
+  if(!ind || !dt) return;
+  const now = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  dt.textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()];
+  // Show on detail page
+  const onDetail = document.getElementById('detailPage').classList.contains('active');
+  ind.classList.toggle('show', onDetail);
+}
+setInterval(updateTodayIndicator, 5000);
+
+// ── CONFETTI ──
+function launchConfetti(){
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas) return;
+  canvas.width = innerWidth; canvas.height = innerHeight;
+  const ctx = canvas.getContext('2d');
+  const pieces = Array.from({length:120},()=>({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height - canvas.height,
+    r: 4+Math.random()*6,
+    c: ['#FFE500','#0A0A0A','#00963A','#0047FF','#FF6B00'][Math.floor(Math.random()*5)],
+    vx: (Math.random()-.5)*3,
+    vy: 2+Math.random()*4,
+    rot: Math.random()*360,
+    rv: (Math.random()-.5)*8
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.c;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);
+      ctx.restore();
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rv;
+      if(p.y>canvas.height+20){ p.y=-20; p.x=Math.random()*canvas.width; }
+    });
+    if(frame++<180) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+// ── MIDNIGHT AUTO-REFRESH ──
+// Re-renders the active view when the calendar day changes, so:
+// - Yesterday's unchecked tasks immediately show cross marks
+// - Today's new column becomes the only interactive one
+(function scheduleMidnightRefresh(){
+  const now = new Date();
+  const msUntilMidnight =
+    new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 1).getTime() - now.getTime();
+  setTimeout(function(){
+    if(document.getElementById('detailPage').classList.contains('active') && currentMissionId){
+      const m = missions.find(x=>x.id===currentMissionId);
+      if(m) renderDetail(m);
+      updateTodayIndicator();
+    } else {
+      renderDashboard();
+    }
+    scheduleMidnightRefresh();
+  }, msUntilMidnight);
+})();
+
+// Patch showCongrats to launch confetti
+const _origShowCongrats = showCongrats;
+
+loadData();
+renderDashboard();
+
+// ── PWA SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
